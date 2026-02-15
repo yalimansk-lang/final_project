@@ -8,7 +8,13 @@ from fastapi import FastAPI, HTTPException, status
 from pydantic import BaseModel, Field
 
 
-app = FastAPI(title="FastAPI Tasks", version="1.0.0")
+app = FastAPI(
+    title="FastAPI Tasks",
+    version="1.0.0",
+    description="Task management API with JSON Lines storage. All endpoints are available in Swagger UI at `/docs`.",
+    docs_url="/docs",  # Swagger UI
+    redoc_url="/redoc",  # ReDoc (optional)
+)
 
 DATA_FILE = Path(__file__).with_name("tasks.txt")
 
@@ -71,20 +77,34 @@ def _get_next_id(tasks: List[Task]) -> int:
     return max(task.id for task in tasks) + 1
 
 
-@app.get("/", tags=["health"])
+@app.get(
+    "/",
+    tags=["health"],
+    summary="Health check",
+    description="Returns a simple message confirming the API is running.",
+)
 def read_root():
     return {"message": "FastAPI Tasks is running"}
 
 
-@app.get("/tasks", response_model=List[Task], tags=["tasks"])
+@app.get(
+    "/tasks",
+    response_model=List[Task],
+    tags=["tasks"],
+    summary="List all tasks",
+    description="Return all tasks from storage. Available in Swagger UI.",
+)
 def list_tasks() -> List[Task]:
-    """
-    Return all tasks.
-    """
     return _load_tasks()
 
 
-@app.get("/tasks/{task_id}", response_model=Task, tags=["tasks"])
+@app.get(
+    "/tasks/{task_id}",
+    response_model=Task,
+    tags=["tasks"],
+    summary="Get task by ID",
+    description="Return a single task by its id. Returns 404 if not found.",
+)
 def get_task(task_id: int) -> Task:
     tasks = _load_tasks()
     for task in tasks:
@@ -100,6 +120,8 @@ def get_task(task_id: int) -> Task:
     response_model=Task,
     status_code=status.HTTP_201_CREATED,
     tags=["tasks"],
+    summary="Create a task",
+    description="Create a new task. Only `title` is required; `description` and `completed` are optional. Id is assigned by the server.",
 )
 def create_task(payload: TaskCreate) -> Task:
     tasks = _load_tasks()
@@ -114,7 +136,13 @@ def create_task(payload: TaskCreate) -> Task:
     return new_task
 
 
-@app.put("/tasks/{task_id}", response_model=Task, tags=["tasks"])
+@app.put(
+    "/tasks/{task_id}",
+    response_model=Task,
+    tags=["tasks"],
+    summary="Replace a task",
+    description="Fully replace an existing task by id. Returns 404 if not found.",
+)
 def replace_task(task_id: int, payload: TaskCreate) -> Task:
     tasks = _load_tasks()
     for index, task in enumerate(tasks):
@@ -134,7 +162,13 @@ def replace_task(task_id: int, payload: TaskCreate) -> Task:
     )
 
 
-@app.patch("/tasks/{task_id}", response_model=Task, tags=["tasks"])
+@app.patch(
+    "/tasks/{task_id}",
+    response_model=Task,
+    tags=["tasks"],
+    summary="Update a task (partial)",
+    description="Partially update a task by id. Only sent fields are updated. Returns 404 if not found.",
+)
 def update_task(task_id: int, payload: TaskUpdate) -> Task:
     tasks = _load_tasks()
     for index, task in enumerate(tasks):
@@ -154,6 +188,8 @@ def update_task(task_id: int, payload: TaskUpdate) -> Task:
     "/tasks/{task_id}",
     status_code=status.HTTP_204_NO_CONTENT,
     tags=["tasks"],
+    summary="Delete a task",
+    description="Delete a task by id. Returns 204 on success, 404 if not found.",
 )
 def delete_task(task_id: int) -> None:
     tasks = _load_tasks()
