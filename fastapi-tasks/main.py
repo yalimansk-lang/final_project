@@ -15,11 +15,12 @@ DATA_FILE = Path(__file__).with_name("tasks.txt")
 
 class TaskBase(BaseModel):
     title: str = Field(..., max_length=255)
-    description: Optional[str] = None
+    description: str | None = None
     completed: bool = False
 
 
 class TaskCreate(TaskBase):
+    """Request body for creating a task; id is assigned by the server."""
     pass
 
 
@@ -30,6 +31,7 @@ class TaskUpdate(BaseModel):
 
 
 class Task(TaskBase):
+    """Full task with server-assigned id (response and storage)."""
     id: int
 
 
