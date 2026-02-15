@@ -12,8 +12,9 @@ app = FastAPI(
     title="FastAPI Tasks",
     version="1.0.0",
     description="Task management API with JSON Lines storage. All endpoints are available in Swagger UI at `/docs`.",
-    docs_url="/docs",  # Swagger UI
-    redoc_url="/redoc",  # ReDoc (optional)
+    docs_url="/docs",
+    redoc_url="/redoc",
+    openapi_url="/openapi.json",
 )
 
 DATA_FILE = Path(__file__).with_name("tasks.txt")
@@ -39,6 +40,12 @@ class TaskUpdate(BaseModel):
 class Task(TaskBase):
     """Full task with server-assigned id (response and storage)."""
     id: int
+
+
+# Ensure all models are fully built for OpenAPI schema generation (avoids "not fully defined" when loaded via launcher)
+TaskCreate.model_rebuild()
+TaskUpdate.model_rebuild()
+Task.model_rebuild()
 
 
 def _load_tasks() -> List[Task]:
